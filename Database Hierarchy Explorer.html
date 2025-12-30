@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Hierarchy Explorer - Enterprise Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0F1117;
+            padding: 0;
+            min-height: 100vh;
+            color: #E6EAF2;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #0F1117;
+            min-height: 100vh;
+            box-shadow: 0 0 80px rgba(77, 163, 255, 0.1);
+        }
+
+        .header {
+            background: #0F1117;
+            border-bottom: 1px solid rgba(77, 163, 255, 0.2);
+            padding: 32px 48px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #4DA3FF 0%, #00E5C3 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(77, 163, 255, 0.4);
+        }
+
+        .header-text h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #E6EAF2;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-text p {
+            font-size: 13px;
+            color: #9AA4BF;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .controls {
+            padding: 24px 48px;
+            background: #0F1117;
+            border-bottom: 1px solid #252A3A;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid #252A3A;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4DA3FF 0%, #00E5C3 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(77, 163, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(77, 163, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: #161A23;
+            color: #E6EAF2;
+            border: 1px solid #252A3A;
+        }
+
+        .btn-secondary:hover {
+            background: #252A3A;
+            border-color: #4DA3FF;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 11px 16px 11px 44px;
+            border: 1px solid #252A3A;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #161A23 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%239AA4BF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>') no-repeat 16px center;
+            color: #E6EAF2;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4DA3FF;
+            box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.1);
+            background-color: #0F1117;
+        }
+
+        .search-box::placeholder {
+            color: #9AA4BF;
+        }
+
+        .search-results {
+            padding: 20px 48px;
+            background: #0F1117;
+            border-bottom: 1px solid #252A3A;
+            display: none;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-results-header {
+            color: #4DA3FF;
+            font-weight: 500;
+            margin-bottom: 16px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #161A23;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #252A3A;
+            border-left: 3px solid #4DA3FF;
+        }
+
+        .search-result-item:hover {
+            background: rgba(77, 163, 255, 0.12);
+            border-left-width: 4px;
+            transform: translateX(4px);
+        }
+
+        .search-result-name {
+            color: #E6EAF2;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .search-result-path {
+            color: #9AA4BF;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .path-separator {
+            margin: 0 6px;
+            color: #252A3A;
+        }
+
+        .tree-container {
+            padding: 32px 48px;
+            overflow-x: auto;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .tree {
+            list-style: none;
+        }
+
+        .tree-item {
+            margin: 4px 0;
+        }
+
+        .tree-content {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .tree-content:hover {
+            background: rgba(77, 163, 255, 0.12);
+            border-color: rgba(77, 163, 255, 0.2);
+        }
+
+        .tree-content.active {
+            background: rgba(77, 163, 255, 0.15);
+            border-color: rgba(77, 163, 255, 0.3);
+            border-left: 3px solid #4DA3FF;
+        }
+
+        .tree-content.search-match {
+            background: rgba(77, 163, 255, 0.2);
+            animation: pulse 2s ease-in-out;
+            border-color: #4DA3FF;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                background: rgba(77, 163, 255, 0.2);
+                box-shadow: 0 0 0 0 rgba(77, 163, 255, 0.4);
+            }
+            50% { 
+                background: rgba(77, 163, 255, 0.3);
+                box-shadow: 0 0 0 8px rgba(77, 163, 255, 0);
+            }
+        }
+
+        .copy-btn {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #161A23;
+            border: 1px solid #252A3A;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            color: #9AA4BF;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: #00E5C3;
+            border-color: #00E5C3;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 229, 195, 0.4);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .toggle-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #9AA4BF;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(90deg);
+            color: #4DA3FF;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #E6EAF2;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .type-badge {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+        }
+
+        .badge-main-database {
+            background: rgba(77, 163, 255, 0.15);
+            color: #4DA3FF;
+            border-color: rgba(77, 163, 255, 0.3);
+        }
+
+        .badge-sub-database {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .badge-schema {
+            background: rgba(0, 229, 195, 0.15);
+            color: #00E5C3;
+            border-color: rgba(0, 229, 195, 0.3);
+        }
+
+        .badge-table {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .children {
+            margin-left: 32px;
+            display: none;
+            border-left: 2px solid #252A3A;
+            padding-left: 16px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .children.show {
+            display: block;
+            animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tooltip Styles */
+        .path-tooltip {
+            position: fixed;
+            background: #161A23;
+            color: #E6EAF2;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 1px solid #252A3A;
+            max-width: 600px;
+            word-wrap: break-word;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .path-tooltip.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .path-tooltip-header {
+            font-weight: 600;
+            color: #4DA3FF;
+            margin-bottom: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .path-tooltip-content {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            color: #00E5C3;
+            font-size: 13px;
+        }
+
+        /* Copy Notification */
+        .copy-notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: linear-gradient(135deg, #00E5C3 0%, #059669 100%);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 229, 195, 0.4);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .copy-notification.show {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .stats {
+            padding: 32px 48px;
+            background: #0F1117;
+            border-top: 1px solid #252A3A;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 24px;
+            background: #161A23;
+            border-radius: 12px;
+            border: 1px solid #252A3A;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .stat-item:hover {
+            border-color: #4DA3FF;
+            box-shadow: 0 4px 16px rgba(77, 163, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4DA3FF 0%, #00E5C3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #9AA4BF;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .highlight {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: #9AA4BF;
+            font-size: 14px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 17, 23, 0.9);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: #0F1117;
+            border-radius: 16px;
+            border: 1px solid #252A3A;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #252A3A;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0F1117;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #E6EAF2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #161A23;
+            border: 1px solid #252A3A;
+            color: #9AA4BF;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+
+        .modal-close:hover {
+            background: #252A3A;
+            color: #E6EAF2;
+        }
+
+        .modal-body {
+            padding: 24px 32px;
+            max-height: calc(80vh - 100px);
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 14px 16px;
+            margin: 8px 0;
+            background: #161A23;
+            border-radius: 8px;
+            border: 1px solid #252A3A;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .list-item:hover {
+            background: rgba(77, 163, 255, 0.12);
+            border-color: #4DA3FF;
+        }
+
+        .list-item-copy-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0F1117;
+            border: 1px solid #252A3A;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            color: #9AA4BF;
+            flex-shrink: 0;
+        }
+
+        .list-item-copy-btn:hover {
+            background: #00E5C3;
+            border-color: #00E5C3;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 229, 195, 0.4);
+        }
+
+        .list-item-copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .list-item-copy-btn.copied {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .list-item-info {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .list-item-name {
+            color: #E6EAF2;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .list-item-path {
+            color: #9AA4BF;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .list-item-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+            flex-shrink: 0;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #161A23;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #252A3A;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4DA3FF;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 24px;
+            }
+
+            .controls {
+                padding: 16px 24px;
+                flex-direction: column;
+            }
+
+            .tree-container {
+                padding: 24px;
+            }
+
+            .stats {
+                padding: 24px;
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .modal {
+                width: 95%;
+                max-height: 90vh;
+            }
+
+            .modal-header {
+                padding: 20px;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">🗄️</div>
+                    <div class="header-text">
+                        <h1>Database Hierarchy Explorer</h1>
+                        <p>Enterprise MES & SAP Database Structure Visualization</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="expandAll()">
+                <span>📂</span>
+                <span>Expand All</span>
+            </button>
+            <button class="btn btn-secondary" onclick="collapseAll()">
+                <span>📁</span>
+                <span>Collapse All</span>
+            </button>
+            <input type="text" class="search-box" id="searchBox" placeholder="Search databases, schemas, or tables..." onkeyup="searchTree()">
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <div class="search-results-header" id="searchResultsHeader"></div>
+            <div id="searchResultsList"></div>
+        </div>
+
+        <div class="tree-container">
+            <ul class="tree" id="treeRoot">
+                <!-- Tree structure will be generated by JavaScript -->
+            </ul>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item" onclick="showCategoryList('main-database')">
+                <div class="stat-value" id="dbCount">2</div>
+                <div class="stat-label">Main Databases</div>
+            </div>
+            <div class="stat-item" onclick="showCategoryList('sub-database')">
+                <div class="stat-value" id="subDbCount">6</div>
+                <div class="stat-label">Sub Databases</div>
+            </div>
+            <div class="stat-item" onclick="showCategoryList('schema')">
+                <div class="stat-value" id="schemaCount">13</div>
+                <div class="stat-label">Schemas</div>
+            </div>
+            <div class="stat-item" onclick="showCategoryList('table')">
+                <div class="stat-value" id="tableCount">66</div>
+                <div class="stat-label">Tables</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Path Tooltip -->
+    <div class="path-tooltip" id="pathTooltip">
+        <div class="path-tooltip-header">Full Path</div>
+        <div class="path-tooltip-content" id="pathTooltipContent"></div>
+    </div>
+
+    <!-- Copy Notification -->
+    <div class="copy-notification" id="copyNotification">
+        <span>✓</span>
+        <span>Path copied to clipboard!</span>
+    </div>
+
+    <!-- Modal for Category List -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">
+                    <span id="modalIcon"></span>
+                    <span id="modalTitleText"></span>
+                </div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- List items will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let searchResults = [];
+        let tooltip = document.getElementById('pathTooltip');
+        let tooltipContent = document.getElementById('pathTooltipContent');
+        let copyNotification = document.getElementById('copyNotification');
+        let allItems = [];
+
+        // Database structure data
+        const databaseStructure = {
+            name: "Databases",
+            children: [
+                {
+                    name: "mes",
+                    type: "main-database",
+                    children: [
+                        {
+                            name: "smartgateplus",
+                            type: "sub-database",
+                            children: [
+                                {
+                                    name: "dbo",
+                                    type: "schema",
+                                    children: [
+                                        { name: "setup_change_data", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "dta",
+                                    type: "schema",
+                                    children: [
+                                        { name: "downtime_department", type: "table" },
+                                        { name: "downtime_with_reason", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "master",
+                                    type: "schema",
+                                    children: [
+                                        { name: "recipe_production", type: "table" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: "smartiiotqa",
+                            type: "sub-database",
+                            children: [
+                                {
+                                    name: "dbo",
+                                    type: "schema",
+                                    children: [
+                                        { name: "sap_rmissueackfromsap", type: "table" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: "smartmesbtp",
+                            type: "sub-database",
+                            children: [
+                                {
+                                    name: "dbo",
+                                    type: "schema",
+                                    children: [
+                                        { name: "bladderdetail", type: "table" },
+                                        { name: "curinglookup", type: "table" },
+                                        { name: "curingncm", type: "table" },
+                                        { name: "curingpcr", type: "table" },
+                                        { name: "curingpcrbufferbarcode", type: "table" },
+                                        { name: "curingpcrtempbarcode", type: "table" },
+                                        { name: "curingproduction", type: "table" },
+                                        { name: "dbmdata", type: "table" },
+                                        { name: "firststagetbmmachine", type: "table" },
+                                        { name: "paintingdata", type: "table" },
+                                        { name: "paintingdatanew", type: "table" },
+                                        { name: "pcrvisualinspection", type: "table" },
+                                        { name: "productiondatapcrdbnew", type: "table" },
+                                        { name: "productiondatatuo", type: "table" },
+                                        { name: "productiondatatuonew", type: "table" },
+                                        { name: "sap_curing_ack", type: "table" },
+                                        { name: "sap_curing_confirmation", type: "table" },
+                                        { name: "sap_employee_master", type: "table" },
+                                        { name: "sap_scrap_ack", type: "table" },
+                                        { name: "sap_scrap_confirmation", type: "table" },
+                                        { name: "sap_tbm_ack", type: "table" },
+                                        { name: "sap_tbm_confirmation", type: "table" },
+                                        { name: "secondvidata", type: "table" },
+                                        { name: "secondvidatasap", type: "table" },
+                                        { name: "shearographydata", type: "table" },
+                                        { name: "tbmpcr", type: "table" },
+                                        { name: "tgisdata", type: "table" },
+                                        { name: "tuodata", type: "table" },
+                                        { name: "vmimaxx", type: "table" },
+                                        { name: "waveformdata", type: "table" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: "mesinterface",
+                            type: "sub-database",
+                            children: [
+                                {
+                                    name: "ac",
+                                    type: "schema",
+                                    children: [
+                                        { name: "o_production_log", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "ct",
+                                    type: "schema",
+                                    children: [
+                                        { name: "lotquarantine", type: "table" },
+                                        { name: "materialageupdate", type: "table" },
+                                        { name: "mi_transactions", type: "table" },
+                                        { name: "testproc", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "dbo",
+                                    type: "schema",
+                                    children: [
+                                        { name: "beadwirecountdata", type: "table" },
+                                        { name: "debugging", type: "table" },
+                                        { name: "dieshop", type: "table" },
+                                        { name: "feedingeventdata", type: "table" },
+                                        { name: "tbmpcr_test", type: "table" },
+                                        { name: "testtriger", type: "table" },
+                                        { name: "vmimaxx_logs", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "mm",
+                                    type: "schema",
+                                    children: [
+                                        { name: "dosingeventdata", type: "table" },
+                                        { name: "mixingproductionbooking", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "ncm",
+                                    type: "schema",
+                                    children: [
+                                        { name: "bookingdata", type: "table" },
+                                        { name: "historydata", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "quintuplex",
+                                    type: "schema",
+                                    children: [
+                                        { name: "dataparam", type: "table" }
+                                    ]
+                                },
+                                {
+                                    name: "tbmstage2_vmimaxx",
+                                    type: "schema",
+                                    children: [
+                                        { name: "production_data_vmi_maxx_01", type: "table" }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: "sap",
+                    type: "main-database",
+                    children: [
+                        {
+                            name: "master",
+                            type: "sub-database",
+                            children: [
+                                {
+                                    name: "v1",
+                                    type: "schema",
+                                    children: [
+                                        { name: "BOM_details", type: "table" },
+                                        { name: "machine_capacity", type: "table" },
+                                        { name: "machine_cycle_time", type: "table" },
+                                        { name: "man_master", type: "table" },
+                                        { name: "material_master", type: "table" },
+                                        { name: "mould_master", type: "table" },
+                                        { name: "setup_changeover_time", type: "table" }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            name: "transitional",
+                            type: "sub-database",
+                            children: []
+                        }
+                    ]
+                }
+            ]
+        };
+
+        function getIconForType(type) {
+            const icons = {
+                'main-database': '💾',
+                'sub-database': '🗃️',
+                'schema': '📂',
+                'table': '📊'
+            };
+            return icons[type] || '📄';
+        }
+
+        function getBadgeForType(type) {
+            const badges = {
+                'main-database': 'Main Database',
+                'sub-database': 'Sub Database',
+                'schema': 'Schema',
+                'table': 'Table'
+            };
+            return badges[type] || '';
+        }
+
+        function collectAllItems(node, path = []) {
+            if (!node.type) return;
+            
+            const currentPath = [...path, node.name];
+            allItems.push({
+                name: node.name,
+                type: node.type,
+                path: currentPath
+            });
+
+            if (node.children) {
+                node.children.forEach(child => collectAllItems(child, currentPath));
+            }
+        }
+
+        function copyListItemPath(path, button) {
+            const formattedPath = '["' + path.join('/') + '"]';
+            
+            navigator.clipboard.writeText(formattedPath).then(() => {
+                showCopyNotification();
+                
+                if (button) {
+                    button.classList.add('copied');
+                    button.innerHTML = '✓';
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        button.innerHTML = '📋';
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        function showCategoryList(category) {
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitleText');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalBody = document.getElementById('modalBody');
+
+            const filtered = allItems.filter(item => item.type === category);
+            
+            const titles = {
+                'main-database': 'Main Databases',
+                'sub-database': 'Sub Databases',
+                'schema': 'Schemas',
+                'table': 'Tables'
+            };
+
+            modalIcon.textContent = getIconForType(category);
+            modalTitle.textContent = titles[category];
+            modalBody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                modalBody.innerHTML = '<div class="no-results">No items found in this category</div>';
+            } else {
+                filtered.forEach(item => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+
+                    // Copy button
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'list-item-copy-btn';
+                    copyBtn.innerHTML = '📋';
+                    copyBtn.title = 'Copy path';
+                    copyBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        copyListItemPath(item.path, copyBtn);
+                    };
+
+                    // Info section
+                    const info = document.createElement('div');
+                    info.className = 'list-item-info';
+                    info.onclick = () => {
+                        closeModal();
+                        navigateToItem(item);
+                    };
+
+                    const name = document.createElement('div');
+                    name.className = 'list-item-name';
+                    name.textContent = item.name;
+
+                    const pathDiv = document.createElement('div');
+                    pathDiv.className = 'list-item-path';
+                    pathDiv.textContent = '["' + item.path.join('/') + '"]';
+
+                    info.appendChild(name);
+                    info.appendChild(pathDiv);
+
+                    // Badge
+                    const badge = document.createElement('div');
+                    badge.className = `list-item-badge badge-${item.type}`;
+                    badge.textContent = getBadgeForType(item.type);
+
+                    listItem.appendChild(copyBtn);
+                    listItem.appendChild(info);
+                    listItem.appendChild(badge);
+                    modalBody.appendChild(listItem);
+                });
+            }
+
+            modalOverlay.classList.add('show');
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== document.getElementById('modalOverlay')) {
+                return;
+            }
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
+
+        function navigateToItem(item) {
+            const allTreeItems = document.querySelectorAll('.tree-item');
+            let targetElement = null;
+
+            allTreeItems.forEach(treeItem => {
+                const path = getNodePath(treeItem);
+                if (JSON.stringify(path) === JSON.stringify(item.path)) {
+                    targetElement = treeItem;
+                }
+            });
+
+            if (targetElement) {
+                document.querySelectorAll('.tree-content').forEach(el => {
+                    el.classList.remove('search-match');
+                });
+
+                const allChildren = document.querySelectorAll('.children');
+                allChildren.forEach(child => child.classList.remove('show'));
+                
+                const allToggles = document.querySelectorAll('.toggle-icon');
+                allToggles.forEach(toggle => toggle.classList.remove('expanded'));
+
+                expandToNode(targetElement);
+                
+                setTimeout(() => {
+                    scrollToElement(targetElement);
+                }, 100);
+            }
+        }
+
+        function createTreeNode(node, isRoot = false) {
+            const li = document.createElement('li');
+            li.className = 'tree-item';
+
+            const div = document.createElement('div');
+            div.className = 'tree-content';
+            
+            if (!isRoot) {
+                const copyBtn = document.createElement('span');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '📋';
+                copyBtn.title = 'Copy path';
+                copyBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    copyPathToClipboard(li);
+                };
+                div.appendChild(copyBtn);
+            }
+
+            const toggleIcon = document.createElement('span');
+            toggleIcon.className = 'toggle-icon';
+            if (node.children && node.children.length > 0) {
+                toggleIcon.textContent = '▶';
+            }
+            div.appendChild(toggleIcon);
+
+            const icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = isRoot ? '🗄️' : getIconForType(node.type);
+            div.appendChild(icon);
+
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = node.name;
+            div.appendChild(label);
+
+            if (!isRoot && node.type) {
+                const badge = document.createElement('span');
+                badge.className = `type-badge badge-${node.type}`;
+                badge.textContent = getBadgeForType(node.type);
+                div.appendChild(badge);
+            }
+
+            div.onclick = (e) => {
+                if (e.target === div || e.target === toggleIcon || e.target === icon || e.target === label) {
+                    toggleNode(div);
+                }
+            };
+
+            li.appendChild(div);
+
+            if (node.children && node.children.length > 0) {
+                const ul = document.createElement('ul');
+                ul.className = 'children';
+                
+                if (node.children.length === 0 && node.name === 'sap') {
+                    const emptyLi = document.createElement('li');
+                    emptyLi.className = 'tree-item';
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'tree-content';
+                    emptyDiv.innerHTML = '<span class="toggle-icon"></span><span class="icon">ℹ️</span><span class="label">No schemas/tables defined</span>';
+                    emptyLi.appendChild(emptyDiv);
+                    ul.appendChild(emptyLi);
+                } else {
+                    node.children.forEach(child => {
+                        ul.appendChild(createTreeNode(child));
+                    });
+                }
+                
+                li.appendChild(ul);
+            } else if (node.name === 'sap') {
+                const ul = document.createElement('ul');
+                ul.className = 'children';
+                const emptyLi = document.createElement('li');
+                emptyLi.className = 'tree-item';
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'tree-content';
+                emptyDiv.innerHTML = '<span class="toggle-icon"></span><span class="icon">ℹ️</span><span class="label">No schemas/tables defined</span>';
+                emptyLi.appendChild(emptyDiv);
+                ul.appendChild(emptyLi);
+                li.appendChild(ul);
+            }
+
+            return li;
+        }
+
+        function initializeTree() {
+            const treeRoot = document.getElementById('treeRoot');
+            treeRoot.innerHTML = '';
+            treeRoot.appendChild(createTreeNode(databaseStructure, true));
+            
+            allItems = [];
+            databaseStructure.children.forEach(child => collectAllItems(child));
+        }
+
+        function toggleNode(element) {
+            const parent = element.parentElement;
+            const children = parent.querySelector('.children');
+            const toggleIcon = element.querySelector('.toggle-icon');
+            
+            if (children) {
+                children.classList.toggle('show');
+                if (toggleIcon) {
+                    toggleIcon.classList.toggle('expanded');
+                }
+            }
+            
+            element.classList.toggle('active');
+        }
+
+        function expandAll() {
+            const allChildren = document.querySelectorAll('.children');
+            const allToggles = document.querySelectorAll('.toggle-icon');
+            
+            allChildren.forEach(child => {
+                child.classList.add('show');
+            });
+            
+            allToggles.forEach(toggle => {
+                if (toggle.textContent.trim() !== '') {
+                    toggle.classList.add('expanded');
+                }
+            });
+        }
+
+        function collapseAll() {
+            const allChildren = document.querySelectorAll('.children');
+            const allToggles = document.querySelectorAll('.toggle-icon');
+            const allContents = document.querySelectorAll('.tree-content');
+            
+            allChildren.forEach(child => {
+                child.classList.remove('show');
+            });
+            
+            allToggles.forEach(toggle => {
+                toggle.classList.remove('expanded');
+            });
+            
+            allContents.forEach(content => {
+                content.classList.remove('active');
+                content.classList.remove('search-match');
+            });
+
+            document.getElementById('searchResults').classList.remove('show');
+        }
+
+        function getNodePath(element) {
+            let path = [];
+            let current = element;
+            
+            while (current) {
+                const label = current.querySelector(':scope > .tree-content > .label');
+                if (label && label.textContent !== 'Databases' && label.textContent !== 'No schemas/tables defined') {
+                    path.unshift(label.textContent);
+                }
+                
+                current = current.parentElement?.closest('.tree-item');
+            }
+            
+            return path;
+        }
+
+        function formatPathWithQuotes(pathArray) {
+            if (pathArray.length === 0) return '[]';
+            return '["' + pathArray.join('/') + '"]';
+        }
+
+        function copyPathToClipboard(element) {
+            const path = getNodePath(element);
+            const formattedPath = formatPathWithQuotes(path);
+            
+            navigator.clipboard.writeText(formattedPath).then(() => {
+                showCopyNotification();
+                
+                const copyBtn = element.querySelector('.copy-btn');
+                if (copyBtn) {
+                    copyBtn.classList.add('copied');
+                    copyBtn.innerHTML = '✓';
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.innerHTML = '📋';
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        function showCopyNotification() {
+            copyNotification.classList.add('show');
+            setTimeout(() => {
+                copyNotification.classList.remove('show');
+            }, 2000);
+        }
+
+        function expandToNode(element) {
+            let current = element.parentElement;
+            
+            while (current) {
+                if (current.classList.contains('children')) {
+                    current.classList.add('show');
+                    
+                    const prevSibling = current.previousElementSibling;
+                    if (prevSibling && prevSibling.classList.contains('tree-content')) {
+                        const toggle = prevSibling.querySelector('.toggle-icon');
+                        if (toggle && toggle.textContent.trim() !== '') {
+                            toggle.classList.add('expanded');
+                        }
+                    }
+                }
+                current = current.parentElement;
+            }
+        }
+
+        function scrollToElement(element) {
+            const treeContent = element.querySelector('.tree-content');
+            if (treeContent) {
+                treeContent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                treeContent.classList.add('search-match');
+                setTimeout(() => {
+                    treeContent.classList.remove('search-match');
+                }, 2000);
+            }
+        }
+
+        function navigateToResult(index) {
+            const result = searchResults[index];
+            if (result && result.element) {
+                document.querySelectorAll('.tree-content').forEach(el => {
+                    el.classList.remove('search-match');
+                });
+
+                const allChildren = document.querySelectorAll('.children');
+                allChildren.forEach(child => child.classList.remove('show'));
+                
+                const allToggles = document.querySelectorAll('.toggle-icon');
+                allToggles.forEach(toggle => toggle.classList.remove('expanded'));
+
+                expandToNode(result.element);
+                
+                setTimeout(() => {
+                    scrollToElement(result.element);
+                }, 100);
+            }
+        }
+
+        function searchTree() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase().trim();
+            const allItems = document.querySelectorAll('.tree-item');
+            const searchResultsDiv = document.getElementById('searchResults');
+            const searchResultsList = document.getElementById('searchResultsList');
+            const searchResultsHeader = document.getElementById('searchResultsHeader');
+            
+            searchResults = [];
+
+            document.querySelectorAll('.tree-content').forEach(el => {
+                el.classList.remove('search-match');
+            });
+
+            if (searchTerm === '') {
+                searchResultsDiv.classList.remove('show');
+                collapseAll();
+                return;
+            }
+
+            allItems.forEach(item => {
+                const label = item.querySelector(':scope > .tree-content > .label');
+                if (label) {
+                    const text = label.textContent.toLowerCase();
+                    const parentLabel = label.textContent;
+                    
+                    if (parentLabel === 'Databases' || parentLabel === 'No schemas/tables defined') {
+                        return;
+                    }
+                    
+                    if (text.includes(searchTerm)) {
+                        const path = getNodePath(item);
+                        searchResults.push({
+                            name: parentLabel,
+                            path: path,
+                            element: item,
+                            text: text
+                        });
+                    }
+                }
+            });
+
+            if (searchResults.length > 0) {
+                searchResultsHeader.textContent = `Found ${searchResults.length} result${searchResults.length > 1 ? 's' : ''} for "${searchTerm}"`;
+                searchResultsList.innerHTML = '';
+                
+                searchResults.forEach((result, index) => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'search-result-item';
+                    resultItem.onclick = () => navigateToResult(index);
+                    
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'search-result-name';
+                    
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    nameDiv.innerHTML = result.name.replace(regex, '<span class="highlight">$1</span>');
+                    
+                    const pathDiv = document.createElement('div');
+                    pathDiv.className = 'search-result-path';
+                    pathDiv.innerHTML = result.path.join(' <span class="path-separator">▸</span> ');
+                    
+                    resultItem.appendChild(nameDiv);
+                    resultItem.appendChild(pathDiv);
+                    searchResultsList.appendChild(resultItem);
+                });
+                
+                searchResultsDiv.classList.add('show');
+                
+                if (searchResults.length > 0) {
+                    navigateToResult(0);
+                }
+            } else {
+                searchResultsHeader.textContent = `No results found for "${searchTerm}"`;
+                searchResultsList.innerHTML = '';
+                searchResultsDiv.classList.add('show');
+            }
+        }
+
+        function showTooltip(event, element) {
+            const treeItem = element.closest('.tree-item');
+            if (!treeItem) return;
+
+            const path = getNodePath(treeItem);
+            if (path.length === 0) return;
+
+            tooltipContent.textContent = formatPathWithQuotes(path);
+            tooltip.classList.add('show');
+            
+            positionTooltip(event);
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('show');
+        }
+
+        function positionTooltip(event) {
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const offset = 15;
+            
+            let left = event.clientX + offset;
+            let top = event.clientY + offset;
+            
+            if (left + tooltipRect.width > window.innerWidth) {
+                left = event.clientX - tooltipRect.width - offset;
+            }
+            
+            if (top + tooltipRect.height > window.innerHeight) {
+                top = event.clientY - tooltipRect.height - offset;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function initializeTooltips() {
+            const allTreeContents = document.querySelectorAll('.tree-content');
+            
+            allTreeContents.forEach(content => {
+                content.addEventListener('mouseenter', (e) => {
+                    if (!e.target.classList.contains('copy-btn')) {
+                        showTooltip(e, content);
+                    }
+                });
+                content.addEventListener('mouseleave', hideTooltip);
+                content.addEventListener('mousemove', positionTooltip);
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchBox').focus();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTree();
+            initializeTooltips();
+        });
+    </script>
+</body>
+</html>
