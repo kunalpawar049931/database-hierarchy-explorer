@@ -58,7 +58,7 @@
         .header-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, #4DA3FF 0%, #00E5C3 100%);
+            background: linear-gradient(135deg, #000000 0%, #000080 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -113,7 +113,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4DA3FF 0%, #00E5C3 100%);
+            background: linear-gradient(135deg, #000000 0%, #000080 100%);
             color: #fff;
             border: none;
             box-shadow: 0 2px 8px rgba(77, 163, 255, 0.3);
@@ -132,7 +132,7 @@
 
         .btn-secondary:hover {
             background: #252A3A;
-            border-color: #4DA3FF;
+            border-color: #000000;
         }
 
         .search-box {
@@ -288,8 +288,8 @@
         }
 
         .copy-btn:hover {
-            background: #00E5C3;
-            border-color: #00E5C3;
+            background: #2F4F4F;
+            border-color: #FFFFFF;
             color: white;
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0, 229, 195, 0.4);
@@ -814,7 +814,7 @@
                 <div class="stat-label">Schemas</div>
             </div>
             <div class="stat-item" onclick="showCategoryList('table')">
-                <div class="stat-value" id="tableCount">66</div>
+                <div class="stat-value" id="tableCount">68</div>
                 <div class="stat-label">Tables</div>
             </div>
         </div>
@@ -1032,7 +1032,9 @@
                                         { name: "man_master", type: "table" },
                                         { name: "material_master", type: "table" },
                                         { name: "mould_master", type: "table" },
-                                        { name: "setup_changeover_time", type: "table" }
+                                        { name: "setup_changeover_time", type: "table" },
+                                        { name: "Man_Prod_Delay", type: "table" },
+                                        { name: "Prod_Delay", type: "table" }
                                     ]
                                 }
                             ]
@@ -1127,15 +1129,18 @@
                     const listItem = document.createElement('div');
                     listItem.className = 'list-item';
 
-                    // Copy button
-                    const copyBtn = document.createElement('button');
-                    copyBtn.className = 'list-item-copy-btn';
-                    copyBtn.innerHTML = '📋';
-                    copyBtn.title = 'Copy path';
-                    copyBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        copyListItemPath(item.path, copyBtn);
-                    };
+                    // Copy button - only for tables
+                    if (item.type === 'table') {
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'list-item-copy-btn';
+                        copyBtn.innerHTML = '📋';
+                        copyBtn.title = 'Copy path';
+                        copyBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            copyListItemPath(item.path, copyBtn);
+                        };
+                        listItem.appendChild(copyBtn);
+                    }
 
                     // Info section
                     const info = document.createElement('div');
@@ -1161,7 +1166,6 @@
                     badge.className = `list-item-badge badge-${item.type}`;
                     badge.textContent = getBadgeForType(item.type);
 
-                    listItem.appendChild(copyBtn);
                     listItem.appendChild(info);
                     listItem.appendChild(badge);
                     modalBody.appendChild(listItem);
@@ -1215,7 +1219,7 @@
             const div = document.createElement('div');
             div.className = 'tree-content';
             
-            if (!isRoot) {
+            if (!isRoot && node.type === 'table') {
                 const copyBtn = document.createElement('span');
                 copyBtn.className = 'copy-btn';
                 copyBtn.innerHTML = '📋';
